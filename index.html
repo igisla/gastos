@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<!-- saved from url=(0069)file:///C:/Users/igisl/OneDrive/Downloads/calculadora-gasto-v3_2.html -->
+<html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Calculadora de Gasto</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #0f0f11;
+  --surface: #1a1a1f;
+  --surface2: #222228;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #f0f0f0;
+  --muted: #888;
+  --dim: #444;
+  --accent: #c8f04a;
+  --accent-dim: rgba(200,240,74,0.12);
+  --accent-border: rgba(200,240,74,0.3);
+  --danger: #ff6b6b;
+  --danger-dim: rgba(255,107,107,0.12);
+  --danger-border: rgba(255,107,107,0.3);
+  --success: #5de8a0;
+  --success-dim: rgba(93,232,160,0.12);
+  --success-border: rgba(93,232,160,0.3);
+  --warning: #fbbf24;
+  --warning-dim: rgba(251,191,36,0.1);
+  --warning-border: rgba(251,191,36,0.3);
+  --radius: 14px;
+  --radius-sm: 8px;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 100vh;
+  padding: 0 0 60px;
+}
+
+/* Nav tabs principales */
+.nav {
+  display: flex;
+  border-bottom: 0.5px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.nav-tab {
+  flex: 1;
+  padding: 14px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.screen { display: none; padding-bottom: 20px; }
+.screen.active { display: block; }
+
+/* Secciones */
+.section { padding: 20px 16px 0; }
+.section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 10px;
+}
+
+/* Cards y fields */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 0.5px solid var(--border);
+  overflow: hidden;
+}
+.field {
+  display: flex;
+  align-items: center;
+  padding: 12px 14px;
+  border-bottom: 0.5px solid var(--border);
+  gap: 10px;
+}
+.field:last-child { border-bottom: none; }
+.field-label { flex: 1; font-size: 14px; color: var(--text); }
+.field-label small { display: block; font-size: 11px; color: var(--muted); margin-top: 1px; }
+.field-input { display: flex; align-items: center; gap: 4px; }
+.field-input input, .field-input select {
+  background: var(--surface2);
+  border: 0.5px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 14px;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  text-align: right;
+  width: 80px;
+  padding: 6px 8px;
+  -webkit-appearance: none;
+  outline: none;
+}
+.field-input select { width: auto; text-align: left; font-family: inherit; }
+.field-input input:focus, .field-input select:focus { border-color: var(--accent); }
+.field-unit { font-size: 12px; color: var(--muted); min-width: 16px; }
+
+/* Préstamos */
+.prestamo-row {
+  display: flex;
+  align-items: center;
+  padding: 11px 14px;
+  border-bottom: 0.5px solid var(--border);
+  gap: 10px;
+}
+.prestamo-row:last-of-type { border-bottom: none; }
+.prestamo-name { flex: 1; }
+.prestamo-name input {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  width: 100%;
+  outline: none;
+}
+.prestamo-name input::placeholder { color: var(--dim); }
+.prestamo-tna { display: flex; align-items: center; gap: 4px; }
+.prestamo-tna input {
+  background: var(--surface2);
+  border: 0.5px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 14px;
+  font-family: 'SF Mono', monospace;
+  text-align: right;
+  width: 68px;
+  padding: 6px 8px;
+  outline: none;
+}
+.prestamo-tna input:focus { border-color: var(--accent); }
+.btn-delete { background: none; border: none; color: var(--dim); font-size: 20px; cursor: pointer; padding: 0 0 0 4px; line-height: 1; }
+.btn-add {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: 0.5px dashed var(--border2);
+  border-radius: var(--radius); color: var(--muted);
+  font-size: 13px; padding: 11px 14px; cursor: pointer;
+  width: 100%; margin-top: 8px; transition: all 0.15s;
+}
+.btn-add:hover { border-color: var(--accent); color: var(--accent); }
+
+.tna-pill {
+  display: inline-flex; align-items: center;
+  background: var(--accent-dim); border: 0.5px solid var(--accent-border);
+  border-radius: 20px; padding: 4px 10px;
+  font-size: 11px; color: var(--accent);
+  font-family: 'SF Mono', monospace; margin-top: 8px;
+}
+
+/* Opciones comparadas */
+.opciones-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+.opcion-card {
+  border-radius: var(--radius);
+  border: 0.5px solid var(--border2);
+  background: var(--surface);
+  padding: 14px;
+  position: relative;
+  transition: border-color 0.2s;
+}
+.opcion-card.ganadora {
+  border-color: var(--success);
+  background: var(--success-dim);
+}
+.opcion-card.perdedora { opacity: 0.6; }
+.opcion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.opcion-titulo { font-size: 13px; font-weight: 500; color: var(--text); }
+.opcion-card.ganadora .opcion-titulo { color: var(--success); }
+.opcion-neto { font-size: 20px; font-weight: 500; font-family: 'SF Mono', monospace; }
+.opcion-neto.pos { color: var(--success); }
+.opcion-neto.neg { color: var(--danger); }
+.opcion-neto.neu { color: var(--text); }
+.opcion-detalle { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.badge-ganadora {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--success);
+  background: var(--success-dim); border: 0.5px solid var(--success-border);
+  border-radius: 20px; padding: 3px 8px;
+}
+
+/* Resumen mensual - compras */
+.compra-item {
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  border: 0.5px solid var(--border);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+.compra-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.compra-nombre { font-size: 14px; font-weight: 500; }
+.compra-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mini-field { display: flex; flex-direction: column; gap: 4px; }
+.mini-label { font-size: 11px; color: var(--muted); }
+.mini-input {
+  background: var(--surface2);
+  border: 0.5px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 14px;
+  font-family: 'SF Mono', monospace;
+  padding: 6px 8px;
+  outline: none;
+  width: 100%;
+  -webkit-appearance: none;
+}
+.mini-input:focus { border-color: var(--accent); }
+
+/* Resumen mensual resultado */
+.escenario-card {
+  border-radius: var(--radius);
+  border: 0.5px solid var(--border2);
+  background: var(--surface);
+  padding: 14px;
+  margin-bottom: 10px;
+}
+.escenario-card.mejor { border-color: var(--success); background: var(--success-dim); }
+.escenario-titulo {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
+}
+.escenario-card.mejor .escenario-titulo { color: var(--success); }
+.escenario-valor {
+  font-size: 26px; font-weight: 500;
+  font-family: 'SF Mono', monospace; margin-bottom: 6px;
+}
+.escenario-valor.pos { color: var(--success); }
+.escenario-valor.neg { color: var(--danger); }
+.escenario-breakdown { font-size: 12px; color: var(--muted); line-height: 1.7; }
+.breakdown-row { display: flex; justify-content: space-between; }
+.breakdown-row span:last-child { font-family: 'SF Mono', monospace; }
+
+.divider { height: 0.5px; background: var(--border); margin: 16px 0 0; }
+
+.note {
+  display: flex; align-items: flex-start; gap: 8px;
+  background: var(--surface); border: 0.5px solid var(--border2);
+  border-radius: var(--radius-sm); padding: 10px 12px; margin-top: 10px;
+}
+.note p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <button class="nav-tab active" onclick="showScreen(&#39;puntual&#39;)">Compra puntual</button>
+  <button class="nav-tab" onclick="showScreen(&#39;mensual&#39;)">Resumen mensual</button>
+  <button class="nav-tab" onclick="showScreen(&#39;config&#39;)">Préstamos</button>
+</div>
+
+<!-- ============ PANTALLA: COMPRA PUNTUAL ============ -->
+<div class="screen active" id="screen-puntual">
+  <div class="section" style="margin-top:16px;">
+    <div class="section-label">La compra</div>
+    <div class="card">
+      <div class="field">
+        <div class="field-label">Monto</div>
+        <div class="field-input">
+          <span class="field-unit">$</span>
+          <input type="number" id="p-monto" value="10000" min="1" step="100" inputmode="decimal" style="width:100px">
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Descuento disponible <small>0 si no hay</small></div>
+        <div class="field-input">
+          <input type="number" id="p-desc" value="20" min="0" max="100" step="1" inputmode="decimal">
+          <span class="field-unit">%</span>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Tope del descuento <small>0 = sin tope</small></div>
+        <div class="field-input">
+          <span class="field-unit">$</span>
+          <input type="number" id="p-tope" value="0" min="0" step="100" inputmode="decimal" style="width:90px">
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Recargo si pagás con crédito <small>0 si no hay</small></div>
+        <div class="field-input">
+          <input type="number" id="p-recargo" value="7" min="0" max="100" step="0.5" inputmode="decimal">
+          <span class="field-unit">%</span>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Días hasta fin de mes <small>calculado automático</small></div>
+        <div class="field-input">
+          <input type="number" id="p-dias" min="1" max="31" step="1" inputmode="numeric">
+          <span class="field-unit">d</span>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Cuotas sin interés disponibles <small>0 si no hay</small></div>
+        <div class="field-input">
+          <input type="number" id="p-cuotas" value="0" min="0" max="24" step="1" inputmode="numeric">
+          <span class="field-unit">ctas</span>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">TNA fondo/caución <small>0 si no invertís</small></div>
+        <div class="field-input">
+          <input type="number" id="p-fondo" value="0" min="0" max="500" step="1" inputmode="decimal">
+          <span class="field-unit">%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" style="margin-top:16px;">
+    <div class="section-label">Comparación de opciones</div>
+    <div class="opciones-grid" id="p-resultado">
+      <div class="opcion-card ganadora">
+        <div class="opcion-header">
+          <div>
+            <div class="opcion-titulo">Débito</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">Obtenés descuento, no precancelás este mes</div>
+          </div>
+          <span class="badge-ganadora">mejor</span>
+        </div>
+        <div class="opcion-neto pos">$2.000</div>
+        <div class="divider" style="margin:10px 0 8px;"></div>
+        <div class="opcion-detalle"><div class="breakdown-row"><span>Descuento</span><span style="color:var(--success);">$2.000</span></div><div class="breakdown-row"><span>Interés no cancelado (14d)</span><span style="color:var(--danger);">$0</span></div></div>
+      </div>
+      <div class="opcion-card ">
+        <div class="opcion-header">
+          <div>
+            <div class="opcion-titulo">Crédito pago único + precancelás</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">Recargo si hay, precancelás con lo que tenías</div>
+          </div>
+          
+        </div>
+        <div class="opcion-neto pos">$1.300</div>
+        <div class="divider" style="margin:10px 0 8px;"></div>
+        <div class="opcion-detalle"><div class="breakdown-row"><span>Descuento</span><span style="color:var(--success);">$2.000</span></div><div class="breakdown-row"><span>Recargo</span><span style="color:var(--danger);">-$700</span></div><div class="breakdown-row"><span>Interés ahorrado precancelando (14d)</span><span style="color:var(--success);">$0</span></div></div>
+      </div></div>
+  </div>
+</div>
+
+<!-- ============ PANTALLA: RESUMEN MENSUAL ============ -->
+<div class="screen" id="screen-mensual">
+  <div class="section" style="margin-top:16px;">
+    <div class="section-label">Disponible a principio de mes</div>
+    <div class="card">
+      <div class="field">
+        <div class="field-label">Plata disponible</div>
+        <div class="field-input">
+          <span class="field-unit">$</span>
+          <input type="number" id="m-disponible" value="100000" min="0" step="1000" inputmode="decimal" style="width:110px">
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Recargo típico si pagás con crédito</div>
+        <div class="field-input">
+          <input type="number" id="m-recargo" value="7" min="0" max="100" step="0.5" inputmode="decimal">
+          <span class="field-unit">%</span>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">TNA fondo/caución <small>0 si no invertís</small></div>
+        <div class="field-input">
+          <input type="number" id="m-fondo" value="0" min="0" max="500" step="1" inputmode="decimal">
+          <span class="field-unit">%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" style="margin-top:16px;">
+    <div class="section-label">Compras del mes</div>
+    <div id="m-compras-lista"><div class="compra-item">
+      <div class="compra-header">
+        <input type="text" value="Compra 1" placeholder="Nombre" style="background:transparent;border:none;color:var(--text);font-size:14px;font-weight:500;font-family:inherit;outline:none;flex:1;" oninput="updateCNombre(1, this.value)">
+        
+      </div>
+      <div class="compra-fields">
+        <div class="mini-field">
+          <span class="mini-label">Monto ($)</span>
+          <input type="number" class="mini-input" value="0" min="0" step="100" inputmode="decimal" oninput="updateC(1,&#39;monto&#39;,this.value)">
+        </div>
+        <div class="mini-field">
+          <span class="mini-label">Descuento (%)</span>
+          <input type="number" class="mini-input" value="0" min="0" max="100" step="1" inputmode="decimal" oninput="updateC(1,&#39;desc&#39;,this.value)">
+        </div>
+        <div class="mini-field">
+          <span class="mini-label">Tope desc. ($, 0=sin)</span>
+          <input type="number" class="mini-input" value="0" min="0" step="100" inputmode="decimal" oninput="updateC(1,&#39;tope&#39;,this.value)">
+        </div>
+      </div></div></div>
+    <button class="btn-add" onclick="agregarCompra()">＋ Agregar compra</button>
+  </div>
+
+  <div class="section" style="margin-top:16px;">
+    <div class="section-label">Resultado por escenario</div>
+    <div id="m-resultado">
+      <div class="escenario-card mejor">
+        <div class="escenario-titulo">★ Todo débito</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Usás todo el disponible para compras, no precancelás</div>
+        <div class="escenario-valor ">$0</div>
+        <div class="divider" style="margin:8px 0;"></div>
+        <div class="escenario-breakdown"><div class="breakdown-row"><span>Descuentos obtenidos</span><span style="color:var(--success);">$0</span></div><div class="breakdown-row"><span>Interés que sigue corriendo (14d)</span><span style="color:var(--danger);">$0</span></div></div>
+      </div>
+      <div class="escenario-card ">
+        <div class="escenario-titulo">Todo crédito + precancelás</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Aprovechás descuentos, pagás recargo y precancelás</div>
+        <div class="escenario-valor ">$0</div>
+        <div class="divider" style="margin:8px 0;"></div>
+        <div class="escenario-breakdown"><div class="breakdown-row"><span>Descuentos obtenidos</span><span style="color:var(--success);">$0</span></div><div class="breakdown-row"><span>Recargos totales</span><span style="color:var(--danger);">$0</span></div><div class="breakdown-row"><span>Interés ahorrado precancelando (14d)</span><span style="color:var(--success);">$0</span></div></div>
+      </div>
+      <div class="escenario-card ">
+        <div class="escenario-titulo">Mix: débito con desc. / crédito sin desc.</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Débito donde hay descuento, crédito donde no</div>
+        <div class="escenario-valor ">$0</div>
+        <div class="divider" style="margin:8px 0;"></div>
+        <div class="escenario-breakdown"><div class="breakdown-row"><span>Descuentos (compras con desc.)</span><span style="color:var(--success);">$0</span></div><div class="breakdown-row"><span>Recargos (compras sin desc.)</span><span style="color:var(--danger);">$0</span></div><div class="breakdown-row"><span>Interés ahorrado precancelando (14d)</span><span style="color:var(--success);">$0</span></div><div class="breakdown-row"><span>Interés no cancelado por débito (14d)</span><span style="color:var(--danger);">$0</span></div></div>
+      </div><div class="note"><p>⚠️ El escenario mix asume que usás débito solo en compras con descuento y crédito en el resto. Los intereses ahorrados asumen que precancelás la plata que no gastaste con débito.</p></div></div>
+  </div>
+</div>
+
+<!-- ============ PANTALLA: CONFIG PRÉSTAMOS ============ -->
+<div class="screen" id="screen-config">
+  <div class="section" style="margin-top:16px;">
+    <div class="section-label">Mis préstamos</div>
+    <div class="card" id="prestamos-card"><div class="prestamo-row">
+      <div class="prestamo-name">
+        <input type="text" value="Préstamo 1" placeholder="Nombre" oninput="updatePNombre(1, this.value)">
+      </div>
+      <div class="prestamo-tna">
+        <input type="number" value="0" min="0" max="1000" step="0.5" inputmode="decimal" oninput="updatePTNA(1, this.value)">
+        <span class="field-unit">%</span>
+      </div>
+      
+    </div></div>
+    <button class="btn-add" onclick="agregarPrestamo()">＋ Agregar préstamo</button>
+    <div id="tna-mayor-display"><div class="tna-pill">↑ usando TNA 0% para los cálculos</div></div>
+  </div>
+</div>
+
+<script>
+// ── localStorage ──
+function guardar() {
+  localStorage.setItem('calc_prestamos', JSON.stringify(prestamos));
+  localStorage.setItem('calc_nextPId', nextPId);
+  localStorage.setItem('calc_compras', JSON.stringify(compras));
+  localStorage.setItem('calc_nextCId', nextCId);
+  const cfg = {
+    disponible: document.getElementById('m-disponible')?.value || '',
+    recargo: document.getElementById('m-recargo')?.value || '',
+    fondo: document.getElementById('m-fondo')?.value || '',
+  };
+  localStorage.setItem('calc_config', JSON.stringify(cfg));
+}
+
+function cargarConfig() {
+  try {
+    const cfg = JSON.parse(localStorage.getItem('calc_config') || '{}');
+    if (cfg.disponible) document.getElementById('m-disponible').value = cfg.disponible;
+    if (cfg.recargo) document.getElementById('m-recargo').value = cfg.recargo;
+    if (cfg.fondo) document.getElementById('m-fondo').value = cfg.fondo;
+  } catch(e) {}
+}
+
+// ── Estado global ──
+let prestamos, nextPId, compras, nextCId;
+
+try {
+  prestamos = JSON.parse(localStorage.getItem('calc_prestamos')) || null;
+  nextPId = parseInt(localStorage.getItem('calc_nextPId')) || null;
+  compras = JSON.parse(localStorage.getItem('calc_compras')) || null;
+  nextCId = parseInt(localStorage.getItem('calc_nextCId')) || null;
+} catch(e) {}
+
+if (!prestamos) prestamos = [
+  { id: 1, nombre: 'Préstamo 1', tna: 0 }
+];
+if (!nextPId) nextPId = Math.max(...prestamos.map(p => p.id)) + 1;
+
+if (!compras) compras = [
+  { id: 1, nombre: 'Compra 1', monto: 0, desc: 0, tope: 0 }
+];
+if (!nextCId) nextCId = Math.max(...compras.map(c => c.id)) + 1;
+
+// ── Helpers ──
+function getTNA() { return Math.max(...prestamos.map(p => p.tna || 0)); }
+
+function diasHastaFinMes() {
+  const hoy = new Date();
+  const ultimo = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
+  return Math.max(1, ultimo - hoy.getDate());
+}
+
+function fmt(n) {
+  const abs = Math.abs(Math.round(n));
+  return (n < 0 ? '-$' : '$') + abs.toLocaleString('es-AR');
+}
+function fmtPct(n) { return n.toFixed(1) + '%'; }
+
+function g(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+// ── Navegación ──
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  const idx = ['puntual','mensual','config'].indexOf(name);
+  document.querySelectorAll('.nav-tab')[idx].classList.add('active');
+}
+
+// ── Préstamos ──
+function renderPrestamos() {
+  const card = document.getElementById('prestamos-card');
+  card.innerHTML = '';
+  prestamos.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'prestamo-row';
+    row.innerHTML = `
+      <div class="prestamo-name">
+        <input type="text" value="${p.nombre}" placeholder="Nombre" oninput="updatePNombre(${p.id}, this.value)">
+      </div>
+      <div class="prestamo-tna">
+        <input type="number" value="${p.tna}" min="0" max="1000" step="0.5" inputmode="decimal" oninput="updatePTNA(${p.id}, this.value)">
+        <span class="field-unit">%</span>
+      </div>
+      ${prestamos.length > 1 ? `<button class="btn-delete" onclick="eliminarPrestamo(${p.id})">×</button>` : ''}
+    `;
+    card.appendChild(row);
+  });
+  const tna = getTNA();
+  document.getElementById('tna-mayor-display').innerHTML =
+    `<div class="tna-pill">↑ usando TNA ${tna}% para los cálculos</div>`;
+  calcPuntual();
+  calcMensual();
+}
+
+function agregarPrestamo() {
+  prestamos.push({ id: nextPId++, nombre: `Préstamo ${prestamos.length + 1}`, tna: 0 });
+  renderPrestamos();
+  guardar();
+}
+function eliminarPrestamo(id) {
+  if (prestamos.length <= 1) return;
+  prestamos = prestamos.filter(p => p.id !== id);
+  renderPrestamos();
+  guardar();
+}
+function updatePNombre(id, v) { const p = prestamos.find(x => x.id === id); if (p) { p.nombre = v; guardar(); } }
+function updatePTNA(id, v) {
+  const p = prestamos.find(x => x.id === id);
+  if (p) { p.tna = parseFloat(v) || 0; renderPrestamos(); guardar(); }
+}
+
+// Beneficio de cuotas sin interés: precancelás el monto completo hoy,
+// después cada mes pagás la cuota con lo que cobrás.
+// El ahorro es el interés del préstamo sobre el monto completo durante todo el período.
+function beneficioCuotas(monto, cuotas, tna) {
+  if (cuotas <= 0) return 0;
+  const tasaMensual = tna / 100 / 12;
+  return monto * tasaMensual * cuotas;
+}
+
+// ── Compra puntual ──
+function calcPuntual() {
+  const tna = getTNA();
+  const monto = g('p-monto');
+  const pctDesc = g('p-desc');
+  const tope = g('p-tope');
+  const recargo = g('p-recargo');
+  const cuotas = g('p-cuotas');
+  const dias = g('p-dias') || diasHastaFinMes();
+  const tnaFondo = g('p-fondo');
+
+  const ahorroRaw = monto * pctDesc / 100;
+  const descuento = tope > 0 ? Math.min(ahorroRaw, tope) : ahorroRaw;
+  const costoRecargo = monto * recargo / 100;
+  const interesNoCancelado = monto * (tna / 100 / 365) * dias;
+  const rendimientoFondo = monto * (tnaFondo / 100 / 365) * dias;
+  const benefCuotas = beneficioCuotas(monto, cuotas, tna);
+
+  // Opción A: débito → descuento, no precancelás
+  const netoA = descuento - interesNoCancelado;
+
+  // Opción B: crédito pago único → descuento si hay, recargo si hay, precancelás
+  const netoB = descuento - costoRecargo + interesNoCancelado;
+
+  // Opción C: cuotas sin interés → descuento si hay, precancelás gradualmente
+  const netoC = cuotas > 0 ? (descuento + benefCuotas) : null;
+
+  // Opción D: cuotas sin interés → descuento si hay, invertís en fondo
+  const netoD = (cuotas > 0 && tnaFondo > 0) ? (descuento + rendimientoFondo) : null;
+
+  // Opción E: crédito pago único → invertís en fondo
+  const netoE = tnaFondo > 0 ? (descuento - costoRecargo + rendimientoFondo) : null;
+
+  const opciones = [
+    {
+      titulo: 'Débito',
+      subtitulo: 'Obtenés descuento, no precancelás este mes',
+      neto: netoA,
+      detalle: [
+        ...(descuento > 0 ? [{ label: 'Descuento', val: fmt(descuento), pos: true }] : []),
+        { label: `Interés no cancelado (${dias}d)`, val: fmt(-interesNoCancelado), pos: false },
+      ]
+    },
+    {
+      titulo: 'Crédito pago único + precancelás',
+      subtitulo: 'Recargo si hay, precancelás con lo que tenías',
+      neto: netoB,
+      detalle: [
+        ...(descuento > 0 ? [{ label: 'Descuento', val: fmt(descuento), pos: true }] : []),
+        ...(costoRecargo > 0 ? [{ label: 'Recargo', val: fmt(-costoRecargo), pos: false }] : []),
+        { label: `Interés ahorrado precancelando (${dias}d)`, val: fmt(interesNoCancelado), pos: true },
+      ]
+    }
+  ];
+
+  if (netoC !== null) {
+    opciones.push({
+      titulo: `${cuotas} cuotas sin interés + precancelás`,
+      subtitulo: 'Precancelás el total hoy, pagás cada cuota con lo que cobrás',
+      neto: netoC,
+      detalle: [
+        ...(descuento > 0 ? [{ label: 'Descuento', val: fmt(descuento), pos: true }] : []),
+        { label: `Interés ahorrado (monto completo × ${cuotas} meses)`, val: fmt(benefCuotas), pos: true },
+      ]
+    });
+  }
+
+  if (netoD !== null) {
+    opciones.push({
+      titulo: `${cuotas} cuotas sin interés + fondo`,
+      subtitulo: `Invertís lo disponible a TNA ${tnaFondo}%`,
+      neto: netoD,
+      detalle: [
+        ...(descuento > 0 ? [{ label: 'Descuento', val: fmt(descuento), pos: true }] : []),
+        { label: `Rendimiento fondo (${dias}d)`, val: fmt(rendimientoFondo), pos: true },
+      ]
+    });
+  }
+
+  if (netoE !== null) {
+    opciones.push({
+      titulo: 'Crédito pago único + fondo',
+      subtitulo: `Invertís lo disponible a TNA ${tnaFondo}%`,
+      neto: netoE,
+      detalle: [
+        ...(descuento > 0 ? [{ label: 'Descuento', val: fmt(descuento), pos: true }] : []),
+        ...(costoRecargo > 0 ? [{ label: 'Recargo', val: fmt(-costoRecargo), pos: false }] : []),
+        { label: `Rendimiento fondo (${dias}d)`, val: fmt(rendimientoFondo), pos: true },
+      ]
+    });
+  }
+
+  opciones.sort((a, b) => b.neto - a.neto);
+  const mejor = opciones[0].neto;
+
+  const html = opciones.map((op, i) => {
+    const esGanadora = op.neto === mejor && op.neto >= opciones[1]?.neto;
+    const cls = i === 0 ? 'ganadora' : (op.neto < 0 ? 'perdedora' : '');
+    const netoCls = op.neto > 0 ? 'pos' : op.neto < 0 ? 'neg' : 'neu';
+    const detalleHtml = op.detalle.map(d =>
+      `<div class="breakdown-row"><span>${d.label}</span><span style="color:${d.pos ? 'var(--success)' : 'var(--danger)'};">${d.val}</span></div>`
+    ).join('');
+    return `
+      <div class="opcion-card ${cls}">
+        <div class="opcion-header">
+          <div>
+            <div class="opcion-titulo">${op.titulo}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${op.subtitulo}</div>
+          </div>
+          ${i === 0 ? '<span class="badge-ganadora">mejor</span>' : ''}
+        </div>
+        <div class="opcion-neto ${netoCls}">${fmt(op.neto)}</div>
+        <div class="divider" style="margin:10px 0 8px;"></div>
+        <div class="opcion-detalle">${detalleHtml}</div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('p-resultado').innerHTML = html;
+}
+
+// ── Compras mensuales ──
+function renderCompras() {
+  const cont = document.getElementById('m-compras-lista');
+  cont.innerHTML = '';
+  compras.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'compra-item';
+    div.innerHTML = `
+      <div class="compra-header">
+        <input type="text" value="${c.nombre}" placeholder="Nombre"
+          style="background:transparent;border:none;color:var(--text);font-size:14px;font-weight:500;font-family:inherit;outline:none;flex:1;"
+          oninput="updateCNombre(${c.id}, this.value)">
+        ${compras.length > 1 ? `<button class="btn-delete" onclick="eliminarCompra(${c.id})">×</button>` : ''}
+      </div>
+      <div class="compra-fields">
+        <div class="mini-field">
+          <span class="mini-label">Monto ($)</span>
+          <input type="number" class="mini-input" value="${c.monto}" min="0" step="100" inputmode="decimal"
+            oninput="updateC(${c.id},'monto',this.value)">
+        </div>
+        <div class="mini-field">
+          <span class="mini-label">Descuento (%)</span>
+          <input type="number" class="mini-input" value="${c.desc}" min="0" max="100" step="1" inputmode="decimal"
+            oninput="updateC(${c.id},'desc',this.value)">
+        </div>
+        <div class="mini-field">
+          <span class="mini-label">Tope desc. ($, 0=sin)</span>
+          <input type="number" class="mini-input" value="${c.tope}" min="0" step="100" inputmode="decimal"
+            oninput="updateC(${c.id},'tope',this.value)">
+        </div>
+      </div>`;
+    cont.appendChild(div);
+  });
+  calcMensual();
+}
+
+function agregarCompra() {
+  compras.push({ id: nextCId++, nombre: `Compra ${compras.length + 1}`, monto: 5000, desc: 0, tope: 0 });
+  renderCompras();
+  guardar();
+}
+function eliminarCompra(id) {
+  if (compras.length <= 1) return;
+  compras = compras.filter(c => c.id !== id);
+  renderCompras();
+  guardar();
+}
+function updateCNombre(id, v) { const c = compras.find(x => x.id === id); if (c) { c.nombre = v; guardar(); } }
+function updateC(id, field, v) {
+  const c = compras.find(x => x.id === id);
+  if (c) { c[field] = parseFloat(v) || 0; calcMensual(); guardar(); }
+}
+
+function calcMensual() {
+  const tna = getTNA();
+  const disponible = g('m-disponible');
+  const recargo = g('m-recargo');
+  const tnaFondo = g('m-fondo');
+  const dias = diasHastaFinMes();
+
+  // Total de compras
+  const totalCompras = compras.reduce((s, c) => s + c.monto, 0);
+
+  // Descuentos totales si todo va con débito
+  const totalDescuentos = compras.reduce((s, c) => {
+    const raw = c.monto * c.desc / 100;
+    return s + (c.tope > 0 ? Math.min(raw, c.tope) : raw);
+  }, 0);
+
+  // Recargos totales si todo va con crédito
+  const totalRecargos = compras.reduce((s, c) => s + c.monto * recargo / 100, 0);
+
+  // Solo compras con descuento para el escenario mix
+  const comprasConDesc = compras.filter(c => c.desc > 0);
+  const montoConDesc = comprasConDesc.reduce((s, c) => s + c.monto, 0);
+  const descuentosMix = comprasConDesc.reduce((s, c) => {
+    const raw = c.monto * c.desc / 100;
+    return s + (c.tope > 0 ? Math.min(raw, c.tope) : raw);
+  }, 0);
+  const montoSinDesc = totalCompras - montoConDesc;
+  const recargosMix = montoSinDesc * recargo / 100;
+
+  // Escenario A: todo débito → no precancela nada
+  const interesA = disponible * (tna / 100 / 365) * dias;
+  const netoA = totalDescuentos - interesA;
+
+  // Escenario B: todo crédito → descuentos + recargos + precancela todo el disponible
+  const interesAhorradoB = disponible * (tna / 100 / 365) * dias;
+  const netoB = totalDescuentos - totalRecargos + interesAhorradoB;
+
+  // Escenario C (mix): débito donde hay descuento, crédito donde no hay
+  // Precancela lo que no gastó con débito
+  const precanceladoMix = Math.max(0, disponible - montoConDesc);
+  const interesAhorradoMix = precanceladoMix * (tna / 100 / 365) * dias;
+  const interesNoCanceladoMix = montoConDesc * (tna / 100 / 365) * dias;
+  const netoC = descuentosMix - recargosMix + interesAhorradoMix - interesNoCanceladoMix;
+
+  // Escenario D: crédito + fondo
+  let netoD = null;
+  if (tnaFondo > 0) {
+    const rendFondo = disponible * (tnaFondo / 100 / 365) * dias;
+    netoD = totalDescuentos - totalRecargos + rendFondo;
+  }
+
+  const escenarios = [
+    {
+      titulo: 'Todo débito',
+      subtitulo: 'Usás todo el disponible para compras, no precancelás',
+      neto: netoA,
+      breakdown: [
+        { label: 'Descuentos obtenidos', val: fmt(totalDescuentos), pos: true },
+        { label: `Interés que sigue corriendo (${dias}d)`, val: fmt(-interesA), pos: false },
+      ]
+    },
+    {
+      titulo: 'Todo crédito + precancelás',
+      subtitulo: 'Aprovechás descuentos, pagás recargo y precancelás',
+      neto: netoB,
+      breakdown: [
+        { label: 'Descuentos obtenidos', val: fmt(totalDescuentos), pos: true },
+        { label: 'Recargos totales', val: fmt(-totalRecargos), pos: false },
+        { label: `Interés ahorrado precancelando (${dias}d)`, val: fmt(interesAhorradoB), pos: true },
+      ]
+    },
+    {
+      titulo: 'Mix: débito con desc. / crédito sin desc.',
+      subtitulo: 'Débito donde hay descuento, crédito donde no',
+      neto: netoC,
+      breakdown: [
+        { label: 'Descuentos (compras con desc.)', val: fmt(descuentosMix), pos: true },
+        { label: 'Recargos (compras sin desc.)', val: fmt(-recargosMix), pos: false },
+        { label: `Interés ahorrado precancelando (${dias}d)`, val: fmt(interesAhorradoMix), pos: true },
+        { label: `Interés no cancelado por débito (${dias}d)`, val: fmt(-interesNoCanceladoMix), pos: false },
+      ]
+    }
+  ];
+
+  if (netoD !== null) {
+    const rendFondo = disponible * (tnaFondo / 100 / 365) * dias;
+    escenarios.push({
+      titulo: 'Todo crédito + fondo/caución',
+      subtitulo: `Invertís el disponible a TNA ${tnaFondo}%`,
+      neto: netoD,
+      breakdown: [
+        { label: 'Descuentos obtenidos', val: fmt(totalDescuentos), pos: true },
+        { label: 'Recargos totales', val: fmt(-totalRecargos), pos: false },
+        { label: `Rendimiento fondo (${dias}d)`, val: fmt(rendFondo), pos: true },
+      ]
+    });
+  }
+
+  escenarios.sort((a, b) => b.neto - a.neto);
+
+  const html = escenarios.map((e, i) => {
+    const cls = i === 0 ? 'mejor' : '';
+    const netoCls = e.neto > 0 ? 'pos' : e.neto < 0 ? 'neg' : '';
+    const breakdown = e.breakdown.map(r =>
+      `<div class="breakdown-row"><span>${r.label}</span><span style="color:${r.pos ? 'var(--success)' : 'var(--danger)'};">${r.val}</span></div>`
+    ).join('');
+    return `
+      <div class="escenario-card ${cls}">
+        <div class="escenario-titulo">${i === 0 ? '★ ' : ''}${e.titulo}</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${e.subtitulo}</div>
+        <div class="escenario-valor ${netoCls}">${fmt(e.neto)}</div>
+        <div class="divider" style="margin:8px 0;"></div>
+        <div class="escenario-breakdown">${breakdown}</div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('m-resultado').innerHTML = html +
+    `<div class="note"><p>⚠️ El escenario mix asume que usás débito solo en compras con descuento y crédito en el resto. Los intereses ahorrados asumen que precancelás la plata que no gastaste con débito.</p></div>`;
+}
+
+// ── Listeners ──
+document.addEventListener('input', e => {
+  const pIds = ['p-monto','p-desc','p-tope','p-recargo','p-cuotas','p-dias','p-fondo'];
+  const mIds = ['m-disponible','m-recargo','m-fondo'];
+  if (pIds.includes(e.target.id)) calcPuntual();
+  if (mIds.includes(e.target.id)) { calcMensual(); guardar(); }
+});
+
+// ── Init ──
+document.getElementById('p-dias').value = diasHastaFinMes();
+renderPrestamos();
+renderCompras();
+cargarConfig();
+</script>
+
+
+</body></html>
